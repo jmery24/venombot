@@ -1,6 +1,8 @@
 const venom = require('venom-bot');
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
+//const queries = require('./dbFunciones.js');
+
 
 // Abrir una conexión con la base de datos
 let db = new sqlite3.Database('futbot.db');
@@ -30,15 +32,10 @@ venom
         let hora = match.time
         let lugar = match.location
         let cantjugadores = match.players
-        db.run('INSERT INTO partidos (fecha, lugar, hora, cantjugadores) VALUES (?, ?, ?, ?)', [fecha, lugar, hora, cantjugadores], function (err) {
-          if (err) {
-            return console.error(err.message);
-          }
-          console.log(`Se ha insertado el partido el ${fecha} ${hora} en ${lugar} de ${cantjugadores} jugadores`);
-          client.sendText(message.from, `Partido creado: ${match.date}, ${match.location}, ${match.time}, ${match.players} jugadores.`);
-        });
 
-        //db.close();
+        insertarPartido(fecha, lugar, hora, cantjugadores);
+        client.sendText(message.from, `Partido creado: ${match.date}, ${match.location}, ${match.time}, ${match.players} jugadores.`);
+        
       } else if (message.body.startsWith('/configuracion')) {
         // Parseo de message para obtener detalles del partido creado.
         const config = parseConfigDetails(message.body);
@@ -89,6 +86,8 @@ venom
     console.log(error);
   });
 
+  /////////////////////////// FUNCIONES PARSEO Y SQL ///////////////////////////////////////
+
 function parseMatchDetails(message) {
   const parts = message.split(' ');
   const date = parts[1];
@@ -108,4 +107,15 @@ function parseConfigDetails(message) {
   const fequipoB = parts[6];
   const fcapitanTel = parts[7];
   return { fdia, fhorario, fcancha, fcantjug, fequipoA, fequipoB, fcapitanTel };
+}
+
+
+function insertarPartido(fecha, lugar, hora, cantjugadores) {
+  db.run('INSERT INTO partidos (fecha, lugar, hora, cantjugadores) VALUES (?, ?, ?, ?)', [fecha, lugar, hora, cantjugadores], function (err) {
+    if (err) {
+      return console.error(err.message);
+    }
+    console.log(`Se ha insertado el partido el ${fecha} ${hora} en ${lugar} de ${cantjugadores} jugadores`);
+  });
+  db.close();
 }
